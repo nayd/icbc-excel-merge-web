@@ -42,15 +42,11 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers
             string folderName = "UploadExcel";
             string webRootPath = _hostingEnvironment.WebRootPath;
             string newPath = Path.Combine(webRootPath, folderName);
-            
-            if(!int.TryParse(this._configuration["SheetIndex"], out int sheetIndex))
-            {
-                _logger.LogWarning("sheet index is defaulting to 0, please add SheetIndex in appsettings.json if you need to change this");
-                sheetIndex = 0;
-            }
+
+            int sheetIndex = GetSheetIndex();
 
             StringBuilder sb = new StringBuilder();
-            
+
             if (!Directory.Exists(newPath))
             {
                 Directory.CreateDirectory(newPath);
@@ -102,6 +98,17 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers
                 }
             }
             return this.Content(sb.ToString());
+        }
+
+        public int GetSheetIndex()
+        {
+            if (!int.TryParse(this._configuration["SheetIndex"], out int sheetIndex))
+            {
+                _logger.LogWarning("sheet index is defaulting to 0, please add SheetIndex in appsettings.json if you need to change this");
+                sheetIndex = 0;
+            }
+
+            return sheetIndex;
         }
     }
 }
