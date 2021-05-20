@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using NPOI.SS.UserModel;
 using NPOI.HSSF.UserModel;
 using NPOI.XSSF.UserModel;
+using Microsoft.Extensions.Configuration;
 
 namespace IcbcExcelMergeWeb.DotNetCore.Controllers
 {
@@ -20,10 +21,13 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private IHostingEnvironment _hostingEnvironment;
-        public HomeController(ILogger<HomeController> logger, IHostingEnvironment hostingEnvironment)
+        private readonly IConfiguration _configuration;
+
+        public HomeController(ILogger<HomeController> logger, IHostingEnvironment hostingEnvironment, IConfiguration configuration)
         {
-            _logger = logger;
-            _hostingEnvironment = hostingEnvironment;
+            this._logger = logger;
+            this._hostingEnvironment = hostingEnvironment;
+            this._configuration = configuration;
         }
 
         public IActionResult Index()
@@ -38,7 +42,15 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers
             string folderName = "UploadExcel";
             string webRootPath = _hostingEnvironment.WebRootPath;
             string newPath = Path.Combine(webRootPath, folderName);
+            
+            if(!int.TryParse(this._configuration["SheetIndex"], out int sheetIndex))
+            {
+                _logger.LogWarning("sheet index is defaulting to 0, please add SheetIndex in appsettings.json if you need to change this");
+                sheetIndex = 0;
+            }
+
             StringBuilder sb = new StringBuilder();
+            
             if (!Directory.Exists(newPath))
             {
                 Directory.CreateDirectory(newPath);
@@ -52,15 +64,16 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers
                 {
                     file.CopyTo(stream);
                     stream.Position = 0;
+
                     if (sFileExtension == ".xls")
                     {
                         HSSFWorkbook hssfwb = new HSSFWorkbook(stream); //This will read the Excel 97-2000 formats  
-                        sheet = hssfwb.GetSheetAt(0); //get first sheet from workbook  
+                        sheet = hssfwb.GetSheetAt(sheetIndex); //get first sheet from workbook  
                     }
                     else
                     {
                         XSSFWorkbook hssfwb = new XSSFWorkbook(stream); //This will read 2007 Excel format  
-                        sheet = hssfwb.GetSheetAt(0); //get first sheet from workbook   
+                        sheet = hssfwb.GetSheetAt(sheetIndex); //get first sheet from workbook   
                     }
                     IRow headerRow = sheet.GetRow(0); //Get Header Row
                     int cellCount = headerRow.LastCellNum;
