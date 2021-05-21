@@ -14,6 +14,7 @@ using NPOI.SS.UserModel;
 using NPOI.HSSF.UserModel;
 using NPOI.XSSF.UserModel;
 using Microsoft.Extensions.Configuration;
+using System.Xml;
 
 namespace IcbcExcelMergeWeb.DotNetCore.Controllers
 {
@@ -41,22 +42,26 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers
             IFormFile file = Request.Form.Files[0];
             string folderName = "UploadExcel";
             string webRootPath = _hostingEnvironment.WebRootPath;
-            string newPath = Path.Combine(webRootPath, folderName);
+            string uploadPath = Path.Combine(webRootPath, folderName);
 
             int sheetIndex = GetSheetIndex();
 
             StringBuilder sb = new StringBuilder();
 
-            if (!Directory.Exists(newPath))
+            string xmlReportsPath = Path.Combine(webRootPath, "Reports.xml");
+            var s = new System.Xml.Serialization.XmlSerializer(typeof(Reports));
+            Reports reports = (Reports)s.Deserialize(XmlReader.Create(xmlReportsPath));
+
+            if (!Directory.Exists(uploadPath))
             {
-                Directory.CreateDirectory(newPath);
+                Directory.CreateDirectory(uploadPath);
             }
             if (file.Length > 0)
             {
                 string sFileExtension = Path.GetExtension(file.FileName).ToLower();
                 ISheet sheet;
-                string fullPath = Path.Combine(newPath, file.FileName);
-                using (var stream = new FileStream(fullPath, FileMode.Create))
+                string uploadedFilePath = Path.Combine(uploadPath, file.FileName);
+                using (var stream = new FileStream(uploadedFilePath, FileMode.Create))
                 {
                     file.CopyTo(stream);
                     stream.Position = 0;
