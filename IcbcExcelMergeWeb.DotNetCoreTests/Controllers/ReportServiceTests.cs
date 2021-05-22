@@ -14,37 +14,37 @@ namespace IcbcExcelMergeWeb.DotNetCoreTests.Controllers
     public class ReportServiceTests
     {
         [TestMethod()]
-        public void GetSheetIndexFromConfigTest()
+        public void GetSheetNameFromConfigTest()
         {
             var logger = new Mock<ILogger<ReportService>>();
 
             var configuration = new Mock<IConfiguration>();
-            configuration.Setup(x => x["SheetIndex"]).Returns("1");
+            configuration.Setup(x => x["SheetName"]).Returns("F 20.04");
 
             ReportService reportService =
                 new ReportService(
                     configuration.Object,
                     logger.Object);
 
-            int sheetIndex = reportService.GetSheetName();
-            Assert.AreEqual(1, sheetIndex);
+            string sheetName = reportService.GetSheetName();
+            Assert.AreEqual("F 20.04", sheetName);
         }
 
         [TestMethod()]
-        public void GetSheetIndexDefaultTest()
+        public void GetSheetNameDefaultTest()
         {
             var logger = new Mock<ILogger<ReportService>>();
 
             var configuration = new Mock<IConfiguration>();
-            configuration.Setup(x => x["SheetIndex"]).Returns("");
+            configuration.Setup(x => x["SheetName"]).Returns(string.Empty);
 
             ReportService reportService =
                 new ReportService(
                     configuration.Object,
                     logger.Object);
 
-            int sheetIndex = reportService.GetSheetName();
-            Assert.AreEqual(0, sheetIndex);
+            string sheetName = reportService.GetSheetName();
+            Assert.AreEqual("Sheet1", sheetName);
         }
     }
 }
