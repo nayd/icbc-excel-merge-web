@@ -36,7 +36,9 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers
       
         public ActionResult Import()
         {
+            //TODO: add validation
             IFormFile file = Request.Form.Files[0];
+
             string folderName = "UploadExcel";
             string webRootPath = hostingEnvironment.WebRootPath;
             string uploadPath = Path.Combine(webRootPath, folderName);
@@ -48,6 +50,8 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers
 
         public string GetReportsXmlFile()
         {
+            //TODO: create config repository where all configuration options are defined, and provide reusable parsers for config data types
+
             string defaultFileName = "Reports.xml";
 
             if (configuration["ReportsXml"] == "")

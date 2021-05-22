@@ -26,7 +26,7 @@ namespace IcbcExcelMergeWeb.DotNetCoreTests.Controllers
                     configuration.Object,
                     logger.Object);
 
-            int sheetIndex = reportService.GetSheetIndex();
+            int sheetIndex = reportService.GetSheetName();
             Assert.AreEqual(1, sheetIndex);
         }
 
@@ -43,7 +43,7 @@ namespace IcbcExcelMergeWeb.DotNetCoreTests.Controllers
                     configuration.Object,
                     logger.Object);
 
-            int sheetIndex = reportService.GetSheetIndex();
+            int sheetIndex = reportService.GetSheetName();
             Assert.AreEqual(0, sheetIndex);
         }
     }

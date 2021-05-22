@@ -38,11 +38,11 @@
                     if (response.length == 0)
                         alert('An error occured while uploading the file.');
                     else {
-                        $('#divPrint').html(response);
+                        $('#table1').html(response);
                     }
                 },
                 error: function (e) {
-                    $('#divPrint').html(e.responseText);
+                    $('#table1').html(e.responseText);
                 }
             });
         })
@@ -61,7 +61,7 @@
         </div>
         <div class="clearfix">&nbsp;</div>
         <div class="row">
-            <div id="divPrint"></div>
+            <div id="table1"></div>
         </div>
     </div>
 </form>
