@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using IcbcExcelMergeWeb.DotNetCore.Controllers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using IcbcExcelMergeWeb.DotNetCore.Services;
 
 namespace IcbcExcelMergeWeb.DotNetCore.Controllers.Tests
 {
@@ -15,43 +15,49 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers.Tests
     public class HomeControllerTests
     {
         [TestMethod()]
-        public void GetSheetIndexFromConfigTest()
+        public void GetReportsXmlFileNameFromConfigTest()
         {
             var logger = new Mock<ILogger<HomeController>>();
 
-            var hostingEnvironment = new Mock<IHostingEnvironment>();
+            var hostingEnvironment = new Mock<IWebHostEnvironment>();
 
             var configuration = new Mock<IConfiguration>();
-            configuration.Setup(x => x["SheetIndex"]).Returns("1");
+            configuration.Setup(x => x["ReportsXml"]).Returns("ReportsSchema.xml");
+
+            var reportService = new Mock<IReportService>();
 
             HomeController homeController = 
                 new HomeController(
                     logger.Object, 
                     hostingEnvironment.Object,
-                    configuration.Object);
+                    configuration.Object,
+                    reportService.Object);
 
-            int sheetIndex = homeController.GetSheetIndex();
-            Assert.AreEqual(1, sheetIndex);
+            string reportsXmlFileName = homeController.GetReportsXmlFile();
+            Assert.AreEqual("ReportsSchema.xml", reportsXmlFileName);
         }
 
         [TestMethod()]
-        public void GetSheetIndexDefaultTest()
+        public void GetReportsXmlFileNameDefaultTest()
         {
             var logger = new Mock<ILogger<HomeController>>();
 
-            var hostingEnvironment = new Mock<IHostingEnvironment>();
+            var hostingEnvironment = new Mock<IWebHostEnvironment>();
 
             var configuration = new Mock<IConfiguration>();
-            configuration.Setup(x => x["SheetIndex"]).Returns("");
+            configuration.Setup(x => x["ReportsXml"]).Returns("");
+
+            var reportService = new Mock<IReportService>();
 
             HomeController homeController =
                 new HomeController(
                     logger.Object,
                     hostingEnvironment.Object,
-                    configuration.Object);
+                    configuration.Object,
+                    reportService.Object);
 
-            int sheetIndex = homeController.GetSheetIndex();
-            Assert.AreEqual(0, sheetIndex);
+            string reportsXmlFileName = homeController.GetReportsXmlFile();
+            Assert.AreEqual("Reports.xml", reportsXmlFileName);
         }
     }
 }
