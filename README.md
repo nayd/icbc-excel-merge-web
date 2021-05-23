@@ -9,46 +9,16 @@ Excel, .NET Core 3.1, Razor, NPOI library to read Excel file, Bootstrap, JQuery
 ## Description
 Import Excel report template, merge with report results from XML file, and display report results on a razor web page with format similar to the Excel template
 
+## Usage
+![Step 1](docs/images/Screenshot%202021-05-23%20at%2014.40.47.png)
+![Step 2](docs/images/Screenshot%202021-05-23%20at%2014.41.25.png)
+![Step 3](docs/images/Screenshot%202021-05-23%20at%2014.42.06.png)
+![Step 4](docs/images/Screenshot%202021-05-23%20at%2014.43.24.png)
+![Step 5](docs/images/Screenshot%202021-05-23%20at%2014.44.21.png)
+![Step 6](docs/images/Screenshot%202021-05-23%20at%2014.44.47.png)
+![Step 7](docs/images/Screenshot%202021-05-23%20at%2014.45.53.png)
+![Step 8](docs/images/Screenshot%202021-05-23%20at%2014.54.21.png)
+
 ## Backlog
 1. UI dropdown for selecting the sheet index/name
 2. Add more tests
-
-## Sample XML file with report data
-```xml
-<?xml version="1.0" encoding="UTF-16"?>
-<Reports>
-    <Report>
-        <Name>F 20.04</Name>
-        <ReportVal>
-            <ReportRow>10</ReportRow>
-            <ReportCol>10</ReportCol>
-            <Val>100</Val>
-        </ReportVal>
-        <ReportVal>
-            <ReportRow>10</ReportRow>
-            <ReportCol>11</ReportCol>
-            <Val>200</Val>
-        </ReportVal>
-        <ReportVal>
-            <ReportRow>10</ReportRow>
-            <ReportCol>12</ReportCol>
-            <Val>0</Val>
-        </ReportVal>
-        <ReportVal>
-            <ReportRow>20</ReportRow>
-            <ReportCol>10</ReportCol>
-            <Val>600</Val>
-        </ReportVal>
-        <ReportVal>
-            <ReportRow>20</ReportRow>
-            <ReportCol>11</ReportCol>
-            <Val>500</Val>
-        </ReportVal>
-        <ReportVal>
-            <ReportRow>20</ReportRow>
-            <ReportCol>12</ReportCol>
-            <Val>0</Val>
-        </ReportVal>
-    </Report>
-</Reports>
-```
