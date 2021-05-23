@@ -42,25 +42,24 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers
             string folderName = "UploadExcel";
             string webRootPath = hostingEnvironment.WebRootPath;
             string uploadPath = Path.Combine(webRootPath, folderName);
-            string reportsXmlFile = GetReportsXmlFile();
-            string xmlReportsPath = Path.Combine(webRootPath, reportsXmlFile);
+            string reportDataFileName = GetReportDataFileName("ReportDataFileName", "Reports.xml");
 
-            return this.Content(reportService.BuildReport(file, uploadPath, xmlReportsPath));
+            string reportDataFilePath = Path.Combine(webRootPath, reportDataFileName);
+
+            return this.Content(reportService.BuildReport(file, uploadPath, reportDataFilePath));
         }
 
-        public string GetReportsXmlFile()
+        public string GetReportDataFileName(string configName, string defaultFileName)
         {
             //TODO: create config repository where all configuration options are defined, and provide reusable parsers for config data types
 
-            string defaultFileName = "Reports.xml";
-
-            if (configuration["ReportsXml"] == "")
+            if (configuration[configName] == "")
             {
-                logger.LogWarning($"ReportsXml not specified in configuration, defaulting to {defaultFileName}");
+                logger.LogWarning($"{configName} not specified in configuration, defaulting to {defaultFileName}");
                 return defaultFileName;
             }
 
-            return configuration["ReportsXml"];
+            return configuration[configName];
         }
     }
 }

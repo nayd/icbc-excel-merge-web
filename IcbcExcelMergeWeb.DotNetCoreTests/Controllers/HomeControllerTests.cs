@@ -15,14 +15,14 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers.Tests
     public class HomeControllerTests
     {
         [TestMethod()]
-        public void GetReportsXmlFileNameFromConfigTest()
+        public void GetReportDataFileNameFromConfigTest()
         {
             var logger = new Mock<ILogger<HomeController>>();
 
             var hostingEnvironment = new Mock<IWebHostEnvironment>();
 
             var configuration = new Mock<IConfiguration>();
-            configuration.Setup(x => x["ReportsXml"]).Returns("ReportsSchema.xml");
+            configuration.Setup(x => x["ReportDataFileName"]).Returns("ReportsSchema.xml");
 
             var reportService = new Mock<IReportService>();
 
@@ -33,19 +33,19 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers.Tests
                     configuration.Object,
                     reportService.Object);
 
-            string reportsXmlFileName = homeController.GetReportsXmlFile();
-            Assert.AreEqual("ReportsSchema.xml", reportsXmlFileName);
+            string reportDataFileName = homeController.GetReportDataFileName("ReportDataFileName", "Reports.xml");
+            Assert.AreEqual("ReportsSchema.xml", reportDataFileName);
         }
 
         [TestMethod()]
-        public void GetReportsXmlFileNameDefaultTest()
+        public void GetReportDataFileNameDefaultTest()
         {
             var logger = new Mock<ILogger<HomeController>>();
 
             var hostingEnvironment = new Mock<IWebHostEnvironment>();
 
             var configuration = new Mock<IConfiguration>();
-            configuration.Setup(x => x["ReportsXml"]).Returns("");
+            configuration.Setup(x => x["ReportDataFileName"]).Returns("");
 
             var reportService = new Mock<IReportService>();
 
@@ -56,8 +56,8 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers.Tests
                     configuration.Object,
                     reportService.Object);
 
-            string reportsXmlFileName = homeController.GetReportsXmlFile();
-            Assert.AreEqual("Reports.xml", reportsXmlFileName);
+            string reportDataFileName = homeController.GetReportDataFileName("ReportDataFileName", "Reports.xml");
+            Assert.AreEqual("Reports.xml", reportDataFileName);
         }
     }
 }

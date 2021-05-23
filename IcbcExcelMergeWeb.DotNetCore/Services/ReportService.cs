@@ -89,10 +89,10 @@ namespace IcbcExcelMergeWeb.DotNetCore.Services
         /// <returns>Output any useful messages to the user</returns>
         public string MergeReport(Reports reportResults, XSSFWorkbook workbook, string result)
         {
-            string sheetName = GetSheetName("Sheet1");
+            string sheetName = GetSheetName("SheetName", "Sheet1");
 
             // validate report name with report data
-            //TODO: add test
+            // OTODO: add test
             if (reportResults.Report.Name.ToUpper() != sheetName.ToUpper())
             {
                 result = "Could not generate the report. Report data did not match report name.";
@@ -119,12 +119,12 @@ namespace IcbcExcelMergeWeb.DotNetCore.Services
             ISheet sheet = workbook.GetSheet(sheetName);
             for (int i = 0; i < reportResults.Report.ReportVal.Length; i++)
             {
-                int rowColumnOffset = GetReportYAxisColumnOffset(1);
+                int rowColumnOffset = GetReportYAxisColumnOffset("ReportYAxisColumnOffset", 1);
                 int colColumnOffset = sheet.GetRow(0).Cells.Count - 1; // TODO: we depend on NPOI to determine the max cells correctly, which it currently does.
                 ICell rowCell = GetCellByValue(sheet, reportResults.Report.ReportVal[i].ReportRow, rowColumnOffset);
                 ICell colCell = GetCellByValue(sheet, reportResults.Report.ReportVal[i].ReportCol, colColumnOffset);
 
-                ////TODO: add test
+                // TODO: add test
                 if (rowCell == null || colCell == null)
                 {
                     result = $"Could not generate the report. Unable to determine rowCell or colCell for report value {reportResults.Report.ReportVal[i].Val}.";
@@ -193,11 +193,9 @@ namespace IcbcExcelMergeWeb.DotNetCore.Services
             return null;
         }
 
-        public string GetSheetName(string defaultSheetName)
+        public string GetSheetName(string configName, string defaultSheetName)
         {
             //TODO: create config repository where all configuration options are defined, and provide reusable parsers for config data types
-
-            string configName = "SheetName";
 
             if (configuration[configName] == "")
             {
@@ -209,11 +207,9 @@ namespace IcbcExcelMergeWeb.DotNetCore.Services
             return configuration[configName];
         }
 
-        public int GetReportYAxisColumnOffset(int defaultReportYAxisColumnOffset)
+        public int GetReportYAxisColumnOffset(string configName, int defaultReportYAxisColumnOffset)
         {
             //TODO: create config repository where all configuration options are defined, and provide reusable parsers for config data types
-
-            string configName = "ReportYAxisColumnOffset";
 
             if (!int.TryParse(this.configuration[configName], out int reportYAxisColumnOffset))
             {
