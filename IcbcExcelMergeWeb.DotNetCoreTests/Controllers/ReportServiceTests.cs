@@ -26,7 +26,7 @@ namespace IcbcExcelMergeWeb.DotNetCoreTests.Controllers
                     configuration.Object,
                     logger.Object);
 
-            string sheetName = reportService.GetSheetName();
+            string sheetName = reportService.GetSheetName("Sheet1");
             Assert.AreEqual("F 20.04", sheetName);
         }
 
@@ -43,7 +43,7 @@ namespace IcbcExcelMergeWeb.DotNetCoreTests.Controllers
                     configuration.Object,
                     logger.Object);
 
-            string sheetName = reportService.GetSheetName();
+            string sheetName = reportService.GetSheetName("Sheet1");
             Assert.AreEqual("Sheet1", sheetName);
         }
     }

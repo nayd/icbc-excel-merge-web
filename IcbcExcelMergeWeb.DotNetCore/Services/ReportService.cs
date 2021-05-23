@@ -89,7 +89,7 @@ namespace IcbcExcelMergeWeb.DotNetCore.Services
         /// <returns>Output any useful messages to the user</returns>
         public string MergeReport(Reports reportResults, XSSFWorkbook workbook, string result)
         {
-            string sheetName = GetSheetName();
+            string sheetName = GetSheetName("Sheet1");
 
             // validate report name with report data
             //TODO: add test
@@ -119,7 +119,7 @@ namespace IcbcExcelMergeWeb.DotNetCore.Services
             ISheet sheet = workbook.GetSheet(sheetName);
             for (int i = 0; i < reportResults.Report.ReportVal.Length; i++)
             {
-                int rowColumnOffset = 1;                               // TODO: add to config
+                int rowColumnOffset = GetReportYAxisColumnOffset(1);
                 int colColumnOffset = sheet.GetRow(0).Cells.Count - 1; // TODO: we depend on NPOI to determine the max cells correctly, which it currently does.
                 ICell rowCell = GetCellByValue(sheet, reportResults.Report.ReportVal[i].ReportRow, rowColumnOffset);
                 ICell colCell = GetCellByValue(sheet, reportResults.Report.ReportVal[i].ReportCol, colColumnOffset);
@@ -193,20 +193,36 @@ namespace IcbcExcelMergeWeb.DotNetCore.Services
             return null;
         }
 
-        public string GetSheetName()
+        public string GetSheetName(string defaultSheetName)
         {
             //TODO: create config repository where all configuration options are defined, and provide reusable parsers for config data types
 
-            string defaultSheetName = "Sheet1";
             string configName = "SheetName";
 
             if (configuration[configName] == "")
             {
-                logger.LogWarning($"sheet name is defaulting to {defaultSheetName}, please add {configName} in appsettings.json if you need to change this");
+                logger.LogWarning($"sheet name is defaulting to {defaultSheetName}, please add {configName} in appsettings.json if you " +
+                    $"need to change this");
                 return defaultSheetName;
             }
 
             return configuration[configName];
+        }
+
+        public int GetReportYAxisColumnOffset(int defaultReportYAxisColumnOffset)
+        {
+            //TODO: create config repository where all configuration options are defined, and provide reusable parsers for config data types
+
+            string configName = "ReportYAxisColumnOffset";
+
+            if (!int.TryParse(this.configuration[configName], out int reportYAxisColumnOffset))
+            {
+                logger.LogWarning($"report Y Axis column offset is defaulting to {defaultReportYAxisColumnOffset}, please add {configName} " +
+                    $"in appsettings.json if you need to change this");
+                reportYAxisColumnOffset = defaultReportYAxisColumnOffset;
+            }
+
+            return reportYAxisColumnOffset;
         }
     }
 }
