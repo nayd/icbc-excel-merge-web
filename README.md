@@ -43,5 +43,8 @@ Step 8
 ![Step 8](docs/images/Screenshot%202021-05-23%20at%2014.54.21.png)
 
 ## Backlog
-1. UI dropdown for selecting the sheet index/name
-2. Add more tests
+1. UI dropdown for selecting the sheet index/name.
+2. Please check the Visual Studio Task List whre TODOs are dispalyed with links to code:
+
+![Backlog](docs/images/Screenshot%202021-05-23%20at%2014.33.44.png)
+
