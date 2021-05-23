@@ -38,9 +38,9 @@ Step 7
 
 ![Step 7](docs/images/Screenshot%202021-05-23%20at%2014.45.53.png)
 
-Step 8
+GitHub log
 
-![Step 8](docs/images/Screenshot%202021-05-23%20at%2014.54.21.png)
+![Git Gub log](docs/images/Screenshot%202021-05-23%20at%2014.54.21.png)
 
 ## Backlog
 1. UI dropdown for selecting the sheet index/name.
