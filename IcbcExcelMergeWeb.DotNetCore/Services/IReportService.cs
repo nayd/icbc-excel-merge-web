@@ -1,6 +1,7 @@
 ﻿using IcbcExcelMergeWeb.DotNetCore.Models;
 using Microsoft.AspNetCore.Http;
 using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,8 @@ namespace IcbcExcelMergeWeb.DotNetCore.Services
 {
     public interface IReportService
     {
-        string MergeReport(IFormFile file, string uploadPath, string xmlReportsPath);
+        string BuildReport(IFormFile file, string uploadPath, string xmlReportsPath);
+        string MergeReport(Reports reportResults, XSSFWorkbook workbook, string result);
+        string RenderWorkbook(XSSFWorkbook workbook, string result);
     }
 }

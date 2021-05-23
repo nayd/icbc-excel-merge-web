@@ -45,7 +45,7 @@ namespace IcbcExcelMergeWeb.DotNetCore.Controllers
             string reportsXmlFile = GetReportsXmlFile();
             string xmlReportsPath = Path.Combine(webRootPath, reportsXmlFile);
 
-            return this.Content(reportService.MergeReport(file, uploadPath, xmlReportsPath));
+            return this.Content(reportService.BuildReport(file, uploadPath, xmlReportsPath));
         }
 
         public string GetReportsXmlFile()

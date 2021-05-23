@@ -28,25 +28,22 @@ namespace IcbcExcelMergeWeb.DotNetCore.Services
             this.logger = logger;
         }
 
-        public string MergeReport(IFormFile file, string uploadPath, string xmlReportsPath)
+        /// <summary>
+        /// Store an excel file from the upload and build a report using server-stored XML file with data
+        /// </summary>
+        /// <param name="file">The web input file</param>
+        /// <param name="uploadPath">The upload path to store the Excel file</param>
+        /// <param name="xmlReportsPath">The server-stored XML data file path</param>
+        /// <returns></returns>
+        public string BuildReport(IFormFile file, string uploadPath, string xmlReportsPath)
         {
-            string result = "Could not generate a report. Please check the logs for more information.";
+            string output = "Could not generate a report. Please check the logs for more information.";
 
             // TODO: this can be abstracted to a report results service which can validate report name, etc. 
             // and get results from web service instead of xml file
             var serializer = new System.Xml.Serialization.XmlSerializer(typeof(Reports));
             Reports reportResults = (Reports)serializer.Deserialize(XmlReader.Create(xmlReportsPath));
-            string sheetName = GetSheetName();
             
-            // validate report name with report data
-            //TODO: add test
-            if (reportResults.Report.Name.ToUpper() != sheetName.ToUpper())
-            {
-                result = "Could not generate the report. Report data did not match report name.";
-                logger.LogWarning(result);
-                return result;
-            }
-
             if (file.Length > 0)
             {
                 if (!Directory.Exists(uploadPath))
@@ -56,83 +53,111 @@ namespace IcbcExcelMergeWeb.DotNetCore.Services
                 string fileExtension = Path.GetExtension(file.FileName).ToLower();
                 string uploadedFilePath = Path.Combine(uploadPath, file.FileName);
 
-                // process sheet, merge data, and output formatted html table
-                //TODO: add test
-                using (var stream = new FileStream(uploadedFilePath, FileMode.Create))
+                using var stream = new FileStream(uploadedFilePath, FileMode.Create);
+                file.CopyTo(stream);
+                stream.Position = 0;
+
+                //TODO: abstract with strategy for file extension
+                if (fileExtension == ".xls")
                 {
-                    file.CopyTo(stream);
-                    stream.Position = 0;
-                    int sheetIndex = 0;
+                    //read Excel 97-2000 formats
+                    HSSFWorkbook workbookOldFormat = new HSSFWorkbook(stream);
+                }
+                else
+                {
+                    // read 2007 Excel format
+                    // we assume here the file is .xlsx but this could probably be probed from the stream
+                    XSSFWorkbook workbook = new XSSFWorkbook(stream);
 
-                    if (fileExtension == ".xls")
-                    {
-                        HSSFWorkbook workbookOldFormat = new HSSFWorkbook(stream); //This will read the Excel 97-2000 formats
-                        ISheet sheet = workbookOldFormat.GetSheetAt(sheetIndex);
-                    }
-                    else
-                    {
-                        // we assume here the file is .xlsx but this could probably be probed from the stream
-                        XSSFWorkbook workbook = new XSSFWorkbook(stream); //This will read 2007 Excel format
-
-                        for (int i = workbook.NumberOfSheets - 1; i >= 0; i--)
-                        {
-                            if (workbook[i].SheetName != sheetName)
-                            {
-                                workbook.RemoveAt(i);
-                            }
-                            else
-                            {
-                                sheetIndex = i;
-                            }
-                        }
-
-                        if (workbook.NumberOfSheets != 1)
-                        {
-                            result = $"Sheet name '{sheetName}' was not found.";
-                            logger.LogWarning(result);
-                            return result;
-                        }
-
-                        // the workbook now contains only the sheet that we need
-                        ISheet sheet = workbook.GetSheetAt(sheetIndex);
-                        for (int i = 0; i < reportResults.Report.ReportVal.Length; i++)
-                        {
-                            var reportValue = reportResults.Report.ReportVal[i];
-                            int rowNum = reportValue.ReportRow;
-
-                            int rowOffset = 1;                               // TODO: add to config
-                            int colOffset = sheet.GetRow(0).Cells.Count - 1; // TODO: we depend on NPOI to determine the max cells correctly, which it currently does.
-                            ICell rowCell = GetCellByValue(sheet, reportResults.Report.ReportVal[i].ReportRow, rowOffset);
-                            ICell colCell = GetCellByValue(sheet, reportResults.Report.ReportVal[i].ReportCol, colOffset);
-
-                            //TODO: add test
-                            if (rowCell == null || colCell == null)
-                            {
-                                result = $"Could not generate the report. Unable to determine rowCell or colCell for report value {reportResults.Report.ReportVal[i].Val}.";
-                                logger.LogWarning(result);
-                                return result;
-                            }
-
-                            sheet.GetRow(rowCell.RowIndex).GetCell(colCell.ColumnIndex).SetCellValue(reportResults.Report.ReportVal[i].Val);
-
-                            // audit
-                            // TODO: make configurable
-                            var cellReference = new CellReference(rowCell.RowIndex, colCell.ColumnIndex);
-                            logger.LogInformation($"Sheet '{sheetName}': value '{reportResults.Report.ReportVal[i].Val,10}' -> {cellReference.FormatAsString()}");
-                        }
-
-                        // the NPOI converter will keep the formatting in the resulting HTML table
-                        ExcelToHtmlConverter converter = new ExcelToHtmlConverter();
-                        converter.OutputRowNumbers = false;
-                        converter.OutputColumnHeaders = false;
-                        converter.ProcessWorkbook(workbook);
-
-                        return converter.Document.InnerXml;
-                    }                    
+                    //TODO: abstract with report builder
+                    output = MergeReport(reportResults, workbook, output);
+                    output = RenderWorkbook(workbook, output);
+                   
+                    return output;
                 }
             }
 
+            return output;
+        }
+
+        /// <summary>
+        /// Merge report data already parsed in <paramref name="reportResults"/> into an NPOI <paramref name="workbook"/>
+        /// </summary>
+        /// <param name="reportResults">The report data</param>
+        /// <param name="workbook">The NPOI workbook</param>
+        /// <param name="result">Current user messages</param>
+        /// <returns>Output any useful messages to the user</returns>
+        public string MergeReport(Reports reportResults, XSSFWorkbook workbook, string result)
+        {
+            string sheetName = GetSheetName();
+
+            // validate report name with report data
+            //TODO: add test
+            if (reportResults.Report.Name.ToUpper() != sheetName.ToUpper())
+            {
+                result = "Could not generate the report. Report data did not match report name.";
+                logger.LogWarning(result);
+                return result;
+            }
+
+            for (int i = workbook.NumberOfSheets - 1; i >= 0; i--)
+            {
+                if (workbook[i].SheetName != sheetName)
+                {
+                    workbook.RemoveAt(i);
+                }
+            }
+
+            if (workbook.NumberOfSheets != 1)
+            {
+                result = $"Sheet name '{sheetName}' was not found.";
+                logger.LogWarning(result);
+                return result;
+            }
+
+            // the workbook now contains only the sheet that we need
+            ISheet sheet = workbook.GetSheet(sheetName);
+            for (int i = 0; i < reportResults.Report.ReportVal.Length; i++)
+            {
+                int rowColumnOffset = 1;                               // TODO: add to config
+                int colColumnOffset = sheet.GetRow(0).Cells.Count - 1; // TODO: we depend on NPOI to determine the max cells correctly, which it currently does.
+                ICell rowCell = GetCellByValue(sheet, reportResults.Report.ReportVal[i].ReportRow, rowColumnOffset);
+                ICell colCell = GetCellByValue(sheet, reportResults.Report.ReportVal[i].ReportCol, colColumnOffset);
+
+                ////TODO: add test
+                if (rowCell == null || colCell == null)
+                {
+                    result = $"Could not generate the report. Unable to determine rowCell or colCell for report value {reportResults.Report.ReportVal[i].Val}.";
+                    logger.LogWarning(result);
+                    return result;
+                }
+
+                sheet.GetRow(rowCell.RowIndex).GetCell(colCell.ColumnIndex).SetCellValue(reportResults.Report.ReportVal[i].Val);
+
+                // audit
+                // TODO: make configurable
+                var cellReference = new CellReference(rowCell.RowIndex, colCell.ColumnIndex);
+                logger.LogInformation($"Sheet '{sheetName}': value '{reportResults.Report.ReportVal[i].Val,10}' -> {cellReference.FormatAsString()}");
+            }
+
             return result;
+        }
+
+        /// <summary>
+        /// Render the final HTML table using an NPOI Excel converter which preserves the Excel formatting
+        /// </summary>
+        /// <param name="workbook">The NPOI workbook containing the final report</param>
+        /// <param name="result">Current user messages</param>
+        /// <returns></returns>
+        /// <remarks>See <see cref="ExcelToHtmlConverter"/></remarks>
+        public string RenderWorkbook(XSSFWorkbook workbook, string result)
+        {
+            ExcelToHtmlConverter converter = new ExcelToHtmlConverter();
+            converter.OutputRowNumbers = false;
+            converter.OutputColumnHeaders = false;
+            converter.ProcessWorkbook(workbook);
+
+            return converter.Document.InnerXml;
         }
 
         /// <summary>
@@ -145,7 +170,8 @@ namespace IcbcExcelMergeWeb.DotNetCore.Services
         private static ICell GetCellByValue(ISheet sheet, int dataValue, int columnOffset)
         {
             //TODO: assumption report rows and columns indications on the sheet are parsable to int
-            //TODO: added test
+            //TODO: assumption report results are x-y-axis based, or always a rectangular range
+            //TODO: add test
 
             foreach (IRow row in sheet)
             {
@@ -165,40 +191,6 @@ namespace IcbcExcelMergeWeb.DotNetCore.Services
             }
 
             return null;
-        }
-
-        [Obsolete("First cut by iterating each row and cell. Replaced with converter which keeps the Excel styles")]
-        public static string MergeSheet(ISheet sheet, Reports reports)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            IRow headerRow = sheet.GetRow(0); //Get Header Row
-            int cellCount = headerRow.LastCellNum;
-            sb.AppendLine("<table class='table table-bordered'>");
-            sb.AppendLine("<tr>");
-            for (int j = 0; j < cellCount; j++)
-            {
-                ICell cell = headerRow.GetCell(j);
-                if (cell == null || string.IsNullOrWhiteSpace(cell.ToString())) continue;
-                sb.Append("<th>" + cell.ToString() + "</th>");
-            }
-            sb.AppendLine("</tr>");
-            sb.AppendLine("<tr>");
-            for (int i = (sheet.FirstRowNum + 1); i <= sheet.LastRowNum; i++) //Read Excel File
-            {
-                IRow row = sheet.GetRow(i);
-                if (row == null) continue;
-                if (row.Cells.All(d => d.CellType == CellType.Blank)) continue;
-                for (int j = row.FirstCellNum; j < cellCount; j++)
-                {
-                    if (row.GetCell(j) != null)
-                        sb.AppendLine("<td>" + (row.GetCell(j).StringCellValue == "" ? "&nbsp;" : row.GetCell(j).StringCellValue) + "</td>");
-                }
-                sb.AppendLine("</tr>");
-            }
-            sb.AppendLine("</table>");
-
-            return sb.ToString();
         }
 
         public string GetSheetName()
